@@ -1,0 +1,116 @@
+"""
+CyberShield AI
+Helper Functions
+"""
+
+import ipaddress
+import socket
+import time
+from urllib.parse import urlparse
+
+import requests
+
+
+def normalize_url(url: str) -> str:
+    """
+    Ensure URL has HTTP/HTTPS scheme.
+    """
+
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    return url
+
+
+def extract_domain(url: str) -> str:
+    """
+    Extract domain from URL.
+    """
+
+    parsed = urlparse(normalize_url(url))
+
+    return parsed.netloc.lower()
+
+
+def is_valid_url(url: str) -> bool:
+    """
+    Validate URL.
+    """
+
+    try:
+        parsed = urlparse(normalize_url(url))
+        return bool(parsed.scheme and parsed.netloc)
+    except Exception:
+        return False
+
+
+def is_valid_ip(ip: str) -> bool:
+    """
+    Validate IP Address.
+    """
+
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except ValueError:
+        return False
+
+
+def resolve_ip(domain: str):
+    """
+    Resolve Domain to IP.
+    """
+
+    try:
+        return socket.gethostbyname(domain)
+    except Exception:
+        return None
+
+
+def measure_response_time(url: str) -> float | None:
+    """
+    Measure HTTP response time.
+    """
+
+    try:
+
+        url = normalize_url(url)
+
+        start = time.perf_counter()
+
+        requests.get(
+            url,
+            timeout=10,
+        )
+
+        end = time.perf_counter()
+
+        return round(end - start, 3)
+
+    except Exception:
+        return None
+
+
+def safe_request(url: str, timeout: int = 10):
+    """
+    Safe HTTP GET request.
+    """
+
+    try:
+
+        url = normalize_url(url)
+
+        response = requests.get(
+            url,
+            timeout=timeout,
+            allow_redirects=True,
+            headers={
+                "User-Agent": "CyberShield-AI/1.0"
+            },
+        )
+
+        return response
+
+    except requests.RequestException:
+
+        return None
